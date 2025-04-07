@@ -1,5 +1,10 @@
 import os
 import pandas as pd
+from SIFT_preprocess import build_bow_histogram, get_descriptors, descriptorlst
+from LBP_preprocess import extract_lbp_features
+from sklearn.model_selection import train_test_split
+from sklearn.cluster import MiniBatchKMeans
+import numpy as np
 
 # Create a data frame to store the dataset and use number to represent a class
 def initImg(root, matrix_label):
@@ -23,3 +28,33 @@ def initImg(root, matrix_label):
         "class": class_lst,
         "label": label_lst
     })
+
+
+def dataloader(data, preprocess):
+    train_df, test_df = train_test_split(
+        data,
+        test_size=0.2,
+        random_state=42,
+        stratify=data['label']
+    )
+    
+    X_train, y_train, X_test, y_test = [], [], [], []
+    if preprocess == 'sift':
+        descriptor_lst = descriptorlst(train_df)
+        kmeans = MiniBatchKMeans(n_clusters=100, random_state=42)
+        kmeans.fit(descriptor_lst)
+        for df, X, y in [(train_df, X_train, y_train), (test_df, X_test, y_test)]:
+            for _, row in df.iterrows():
+                descriptors = get_descriptors(row['filename'], preprocess=False)
+                hist = build_bow_histogram(descriptors, kmeans, 100)
+                X.append(hist)
+                y.append(row['label'])
+
+    elif preprocess == 'lbp':
+         for df, X, y in [(train_df, X_train, y_train), (test_df, X_test, y_test)]:
+            for _, row in df.iterrows():
+                features = extract_lbp_features(row['filename'])
+                X.append(features)
+                y.append(row['label'])
+
+    return np.array(X_train), y_train, np.array(X_test), y_test
