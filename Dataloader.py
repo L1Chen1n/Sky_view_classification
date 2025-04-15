@@ -31,12 +31,9 @@ def initImg(root, matrix_label):
 
 
 def dataloader(data, preprocess):
-    train_df, test_df = train_test_split(
-        data,
-        test_size=0.2,
-        random_state=42,
-        stratify=data['label']
-    )
+    train_index = np.load('train_indices.npy')
+    test_index = np.load('val_indices.npy')
+    train_df, test_df = data.iloc[train_index], data.iloc[test_index]
     
     X_train, y_train, X_test, y_test = [], [], [], []
     if preprocess == 'sift':
