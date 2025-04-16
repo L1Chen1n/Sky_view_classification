@@ -6,17 +6,16 @@ from Dataloader_imbalanced import imBalanced_data, imBalanced_dataloader
 
 #dataset root path
 root_dir = 'Aerial_Landscapes'
-max_iter = 1500
+max_iter = 1000
 
 matrix_lst = []
-df = initImg(root_dir, matrix_lst)
+# df = initImg(root_dir, matrix_lst)
 
-X_train, y_train, X_test, y_test = dataloader(df, 'lbp')
-# df1 = initImg(root_dir, matrix_lst)
+# X_train, y_train, X_test, y_test = dataloader(df, 'lbp')
+training_df, testing_df = imBalanced_data(root_dir, matrix_lst)
 # df2 = imBalanced_data(root_dir, matrix_lst)
 
-# X_train, y_train, _, _ = dataloader(df2, 'lbp')
-# _, _, X_test, y_test = imBalanced_dataloader(df1, 'lbp')
+X_train, y_train, X_test, y_test = imBalanced_dataloader(training_df, testing_df, 'sift')
 
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)

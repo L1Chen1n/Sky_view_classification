@@ -6,46 +6,46 @@ from sklearn.cluster import MiniBatchKMeans
 from LBP_preprocess import extract_lbp_features
 import numpy as np
 
-number_of_data = {'Forest': 300, 'Lake': 50, 'Mountain': 50, 'Port': 50, 'Railway': 50, 'Parking': 50, 
-                  'City': 500, 'Highway': 100, 'Residential': 50, 'Agriculture': 800, 'Grassland': 200, 
-                  'Beach': 600, 'Desert': 400, 'Airport': 700, 'River': 50}
+number_of_data = {'Forest': 550, 'Lake': 400, 'Mountain': 350, 'Port': 250, 'Railway': 200, 'Parking': 300, 
+                  'City': 650, 'Highway': 450, 'Residential': 150, 'Agriculture': 700, 'Grassland': 500, 
+                  'Beach': 700, 'Desert': 600, 'Airport': 700, 'River': 100}
 
 def imBalanced_data(root, matrix_label):
-    label_lst = []
-    class_lst = []
-    img_lst = []
+    training_label_lst, training_class_lst, training_img_lst = [], [], []
+    testing_label_lst, testing_class_lst, testing_img_lst = [], [], []
     label = 0
     for file in os.listdir(root):
         class_path = os.path.join(root, file)
-        count = 0
+        count = 1
         for fn in os.listdir(class_path):
-            img_path = os.path.join(class_path, fn)
-            img_lst.append(img_path)
-            class_lst.append(file)
-            if file not in matrix_label:
-                matrix_label.append(file)
-            label_lst.append(label)
-            count += 1
-            if count == number_of_data[file]:
-                break
-            
-
+            if count <= number_of_data[file]:
+                img_path = os.path.join(class_path, fn)
+                training_img_lst.append(img_path)
+                training_class_lst.append(file)
+                if file not in matrix_label:
+                    matrix_label.append(file)
+                training_label_lst.append(label)
+                count += 1
+            else:
+                img_path = os.path.join(class_path, fn)
+                testing_img_lst.append(img_path)
+                testing_class_lst.append(file)
+                testing_label_lst.append(label)
         label += 1
-
+    # print(len(training_img_lst),len(training_class_lst),len(training_label_lst),len(),len(),len())
     return pd.DataFrame({
-        "filename": img_lst,
-        "class": class_lst,
-        "label": label_lst
-    })
+                "filename": training_img_lst,
+                "class": training_class_lst,
+                "label": training_label_lst
+            }),pd.DataFrame({
+                            "filename": testing_img_lst,
+                            "class": testing_class_lst,
+                            "label": testing_label_lst
+                        })
 
-def imBalanced_dataloader(data, preprocess):
-    train_df, test_df = train_test_split(
-        data,
-        test_size=0.2,
-        random_state=42,
-        stratify=data['label']
-    )
-    
+def imBalanced_dataloader(training_data, testing_data, preprocess):
+    train_df, test_df = training_data, testing_data
+
     X_train, y_train, X_test, y_test = [], [], [], []
     if preprocess == 'sift':
         descriptor_lst = descriptorlst(train_df)
